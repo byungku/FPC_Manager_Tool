@@ -304,12 +304,15 @@ button { font-family: inherit; }
   gap: 20px 24px;
   align-content: start;
 }
+/* ENROLL / DELETE / SENSOR SELF-TEST: equal-width buttons, evenly spaced and centred */
 .enroll-actions {
   margin-top: auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 200px));
   justify-content: center;
-  gap: 120px;
+  gap: 48px;
 }
+.enroll-actions .btn.big { min-width: 0; width: 100%; padding: 0 8px; }
 
 .fp-tile {
   aspect-ratio: 4 / 3;
@@ -494,6 +497,7 @@ select { font-family: inherit; }
   .enroll-side { position: static; flex-direction: row; justify-content: flex-start; }
   .enroll-side select { margin-bottom: 0; }
   .enroll-grid { flex: none; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .enroll-actions { gap: 16px; }
+  .enroll-actions { gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .enroll-actions .btn.big { font-size: 13px; }
   .btn.big { min-width: 130px; }
 }

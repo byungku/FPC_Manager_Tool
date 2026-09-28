@@ -888,7 +888,8 @@
 
       const result = await cardReadInformation();
       if (result === ErrorCodes.NO_ERROR) {
-        setEnabled(['btnDisconnect', 'btnEnrollment', 'btnMatch', 'btnSetting', 'cbSelectFinger', 'cbDevSelectFinger'], true);
+        setEnabled(['btnDisconnect', 'btnEnrollment', 'btnMatch', 'btnSetting', 'cbSelectFinger', 'cbDevSelectFinger',
+          'btnEnrollSensorTest'], true);
         updateStatusTextBox();
         updateEnrollImgStatus();
       } else {
@@ -930,7 +931,7 @@
     fpcMethod.seleted = false;
     setEnabled(['btnDisconnect', 'btnInitalization', 'btnInit', 'btnEnrollment', 'btnMatch', 'btnSetting',
       'btnEnroll', 'btnDevEnroll', 'btnDel', 'btnDevDelete', 'btnMatching', 'btnDevMatching',
-      'cbSelectFinger', 'cbDevSelectFinger'], false);
+      'cbSelectFinger', 'cbDevSelectFinger', 'btnEnrollSensorTest'], false);
 
     fpcMethod.enrollmentCnt[0] = 0;
     fpcMethod.enrollmentCnt[1] = 0;
@@ -1197,6 +1198,7 @@
       }
     });
     $('btnSensorTest').addEventListener('click', guarded(btnSensorTestClick));
+    $('btnEnrollSensorTest').addEventListener('click', guarded(btnSensorTestClick));
     $('btnDevClear').addEventListener('click', () => {
       $('rtbCardLog').textContent = '';
       start = Date.now();
