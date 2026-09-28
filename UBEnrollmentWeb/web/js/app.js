@@ -182,8 +182,6 @@
       sel.selectedIndex = 0;
     }
 
-    // "Open local screen" only makes sense on a hosted copy (e.g. GitHub Pages)
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') $('bridgeOpenLocal').hidden = true;
     setupBridgeDownload();
 
     // Refit when the window resizes or the ENROLL tab becomes visible
@@ -224,6 +222,15 @@
     $('bridgeDownloadLabel').textContent = 'FPCBridge 다운로드 (' + mine.label + ')';
     $('bridgeOtherOs').href = other.url;
     $('bridgeOtherOs').textContent = other.label + '용 다운로드';
+
+    // "Open local screen" only helps on a hosted copy (e.g. GitHub Pages), and only once the
+    // bridge is running - so offer it after a download was started.
+    const hosted = location.hostname !== 'localhost' && location.hostname !== '127.0.0.1';
+    if (hosted) {
+      const reveal = () => { $('bridgeOpenLocal').hidden = false; };
+      $('bridgeDownload').addEventListener('click', reveal);
+      $('bridgeOtherOs').addEventListener('click', reveal);
+    }
   }
 
   async function connectBridge() {
