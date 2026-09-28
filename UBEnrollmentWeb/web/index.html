@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FPC Manager Tool</title>
+  <link rel="icon" href="img/FingerPrint_Source_1st_scan.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+  <!-- Left navigation (fpControl) -->
+  <nav class="nav">
+    <img class="nav-logo" src="img/FingerPrint_Source_1st_scan.png" alt="">
+    <button id="btnEnrollment" class="nav-btn" disabled><img src="img/enroll_white_icon.png" alt="">ENROLL</button>
+    <button id="btnMatch" class="nav-btn" disabled><img src="img/match_white_icon.png" alt="">MATCH</button>
+    <button id="btnAbout" class="nav-btn active"><img src="img/info_white_icon.png" alt="">ABOUT</button>
+    <button id="btnDev" class="nav-btn" hidden><img src="img/dev_white_icon.png" alt="">DEV</button>
+    <div class="bridge-status" id="bridgeStatus" title="Local PC/SC bridge">
+      <span class="dot"></span><span class="label">Bridge: offline</span>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- Connection panel (pConnect) -->
+    <header class="connect-panel">
+      <div class="cp-main">
+      <div class="cp-reader">
+        <label for="cbSelReader" class="cp-label">Reader</label>
+        <div class="cp-field">
+          <div class="select-wrap">
+            <select id="cbSelReader"><option value="">Select a reader.</option></select>
+          </div>
+          <button id="btnReload" class="tb-icon" title="Reload reader list" aria-label="Reload reader list">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 4v7h-7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="cp-actions">
+        <div class="cp-group">
+          <button id="btnConnect" class="tb-btn primary">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7V3M15 7V3M6 7h12v4a6 6 0 0 1-12 0V7zM12 17v4"/></svg>
+            <span>Connect</span>
+          </button>
+          <button id="btnDisconnect" class="tb-btn" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7V3M15 7V3M6 7h12v4a6 6 0 0 1-12 0V7zM12 17v4M3 3l18 18"/></svg>
+            <span>Disconnect</span>
+          </button>
+        </div>
+        <span class="cp-divider" aria-hidden="true"></span>
+        <div class="cp-group">
+          <button id="btnSetting" class="tb-btn" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+            <span>Setting</span>
+          </button>
+          <button id="btnInitalization" class="tb-btn" disabled hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>
+            <span>Initialize</span>
+          </button>
+        </div>
+      </div>
+      </div>
+
+      <div class="condition" id="pCondition" role="group" aria-label="Card status">
+        <figure><img id="pbConnect" src="img/disconnect_white.png" alt=""><figcaption>Card</figcaption></figure>
+        <figure><img id="pbInit" src="img/not_init_big_icon.png" alt=""><figcaption>Init</figcaption></figure>
+        <figure><img id="pbEnroll" src="img/not_enroll_big_icon.png" alt=""><figcaption>Enroll</figcaption></figure>
+      </div>
+    </header>
+
+    <!-- Function tabs (tbFunction) -->
+    <section class="tabs">
+      <!-- Enrollment -->
+      <div class="tab" id="tbEnrollment" hidden>
+        <div class="enroll-side">
+          <select id="cbSelectFinger" disabled></select>
+          <!-- Hidden options: Manual off (keep enrolling until complete), Re-Touch on -->
+          <label class="chk" hidden><input type="checkbox" id="cbManual" autocomplete="off"> Manual</label>
+          <label class="chk" hidden><input type="checkbox" id="cbReTouch" checked autocomplete="off"> Re-Touch</label>
+        </div>
+        <div class="enroll-grid" id="enrollGrid"></div>
+        <div class="enroll-actions">
+          <button id="btnEnroll" class="btn big" disabled>ENROLL</button>
+          <button id="btnDel" class="btn big" disabled>DELETE</button>
+        </div>
+      </div>
+
+      <!-- Match -->
+      <div class="tab" id="tbMatch" hidden>
+        <div class="match-center">
+          <div class="fp-tile large"><img id="pbMatch" src="img/FingerPrint_Source_1st.png" alt=""></div>
+          <button id="btnMatching" class="btn big" disabled>MATCH</button>
+        </div>
+      </div>
+
+      <!-- About -->
+      <div class="tab" id="tbAbout">
+        <div class="about">
+          <h1>FPC Manager Tool</h1>
+          <h2>UBIVELOX</h2>
+          <p class="about-note">Web edition &middot; requires the local <b>PcscBridge</b> to access PC/SC readers</p>
+        </div>
+      </div>
+
+      <!-- Dev -->
+      <div class="tab" id="tbDev" hidden>
+        <div class="dev-left">
+          <div class="status-grid">
+            <div><span>Controller Ver</span><output id="tbControllerVer">V x.x</output></div>
+            <div class="wide"><span>Applet Ver</span><output id="tbAppletVer">V x.x</output></div>
+            <div><span>Block State</span><output id="tbBlockState">-</output></div>
+          </div>
+
+          <textarea id="tbApdu" rows="3" spellcheck="false" placeholder="APDU (hex), Enter to send"></textarea>
+          <div class="row">
+            <button id="btnApduSend" class="btn">Send APDU</button>
+            <button id="btnSensorTest" class="btn">Sensor Self-Test</button>
+          </div>
+
+          <div class="dev-enroll">
+            <select id="cbDevSelectFinger" disabled></select>
+            <div class="fp-tile medium"><img id="pbDevEnroll" src="img/FingerPrint_Source_1st.png" alt=""></div>
+          </div>
+          <div class="row">
+            <button id="btnDevEnroll" class="btn" disabled>ENROLL</button>
+            <button id="btnDevDelete" class="btn" disabled>DELETE</button>
+            <button id="btnDevMatching" class="btn" disabled>MATCH</button>
+          </div>
+
+          <div class="repeat">
+            <label class="chk"><input type="checkbox" id="cbMatch" checked autocomplete="off"> Repeat matching</label>
+            <label>MATCH DELAY <input type="number" id="tbMatchDelay" value="1000" min="0" autocomplete="off"> ms</label>
+            <label>MATCH COUNT <input type="number" id="tbMatchCount" value="50" min="1" autocomplete="off"></label>
+          </div>
+        </div>
+        <div class="dev-right">
+          <div class="log-head"><span>Card Log</span><button id="btnDevClear" class="btn small">CLEAR</button></div>
+          <div id="rtbCardLog" class="log" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Message box -->
+<dialog id="msgBox" class="dialog msgbox">
+  <div class="dlg-title"><span id="msgTitle">FPC Manager</span></div>
+  <div class="msg-body"><span id="msgIcon" class="msg-icon"></span><div id="msgText"></div></div>
+  <div class="dlg-actions"><button id="msgOk" class="btn" autofocus>OK</button></div>
+</dialog>
+
+<!-- Initialization (initForm) -->
+<dialog id="initForm" class="dialog">
+  <div class="dlg-title"><span>Initialization</span><button id="btnInitExit" class="dlg-close" title="Close"><img src="img/exit_white_icon.png" alt="Close"></button></div>
+  <div class="init-body">
+    <div class="fp-tile medium"><img id="pbInitState" src="img/FingerPrint_Source_1st.png" alt=""></div>
+    <button id="btnInit" class="btn big">INITIALIZATION</button>
+  </div>
+</dialog>
+
+<!-- Key setting (settingForm) -->
+<dialog id="settingForm" class="dialog">
+  <div class="dlg-title"><span>Key Setting</span><button id="btnSettingExit" class="dlg-close" title="Close"><img src="img/exit_white_icon.png" alt="Close"></button></div>
+  <div class="setting-body">
+    <label>ENC <input id="tbEnc" maxlength="32" spellcheck="false" autocomplete="off"></label>
+    <label>MAC <input id="tbMac" maxlength="32" spellcheck="false" autocomplete="off"></label>
+    <label>DEK <input id="tbDek" maxlength="32" spellcheck="false" autocomplete="off"></label>
+    <p class="hint">32 hex digits each. Empty = default key. Stored in this browser only.</p>
+  </div>
+  <div class="dlg-actions">
+    <button id="btnDefault" class="btn">DEFAULT</button>
+    <button id="btnOk" class="btn">OK</button>
+    <button id="btnCancel" class="btn">CANCEL</button>
+  </div>
+</dialog>
+
+<script src="js/crypto.js"></script>
+<script src="js/pcsc.js"></script>
+<script src="js/fpcard.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
