@@ -4,7 +4,9 @@
 
 **https://byungku.github.io/FPC_Manager_Tool/UBEnrollmentWeb/web/**
 
-- 처음 사용하는 PC는 **[PcscBridge.exe 다운로드](https://github.com/byungku/FPC_Manager_Tool/raw/main/UBEnrollmentWeb/PcscBridge.exe)** 후 실행하세요. 실행 중인 동안 웹에서 리더기를 사용할 수 있습니다.
+- 처음 사용하는 PC는 브리지를 내려받아 실행하세요. 실행 중인 동안 웹에서 리더기를 사용할 수 있습니다.
+  - **Windows**: [FPCBridge.exe 다운로드](https://github.com/byungku/FPC_Manager_Tool/raw/main/UBEnrollmentWeb/FPCBridge.exe)
+  - **Mac**: [FPCBridge-mac.zip 다운로드](https://github.com/byungku/FPC_Manager_Tool/raw/main/UBEnrollmentWeb/FPCBridge-mac.zip) (Apple Silicon·Intel 공용)
 - 위 파일 목록의 `index.html`을 누르면 소스 코드만 보입니다. GitHub는 HTML을 실행하지 않으므로 **위 실행 링크**를 이용하세요.
 
 ---
@@ -13,31 +15,47 @@ PC/SC 리더기로 지문카드에 지문을 등록하는 PC 툴 `UBEnrollmentMa
 
 ## 사용 방법
 
-### 1. PcscBridge.exe 하나로 사용 (권장)
+### 1. FPCBridge 하나로 사용 (권장)
 
+브리지 안에 웹 화면이 들어 있어서, **브리지 파일 하나만 있으면** 브라우저에 지문등록 화면(`http://localhost:8765/`)이 자동으로 열립니다.
+
+**Windows**
 1. PC에 PC/SC 리더기를 연결합니다.
-2. **PcscBridge.exe**를 내려받아 더블클릭합니다.
-   - 웹 화면이 exe 안에 들어 있어서, **exe 하나만 있으면** 브라우저에 지문등록 화면(`http://localhost:8765/`)이 자동으로 열립니다.
+2. **FPCBridge.exe**를 내려받아 더블클릭합니다.
    - "Windows에서 PC를 보호했습니다"가 나오면 **추가 정보 → 실행**을 누릅니다. (서명되지 않은 exe라서 나오는 경고입니다.)
    - **사용하는 동안 검은 콘솔 창을 닫지 마세요.** 이 창이 리더기와 브라우저를 연결합니다.
 3. 화면 왼쪽 아래가 **Bridge: online**이면 READER를 선택하고 **CONNECT**를 누릅니다.
 
+**Mac**
+1. Mac에 PC/SC 리더기를 연결합니다.
+2. **FPCBridge-mac.zip**을 내려받아 압축을 풉니다.
+3. `FPCBridge` 폴더의 **FPCBridge.command**를 마우스 오른쪽 버튼(Control+클릭) → **열기** → **열기**를 누릅니다.
+   - macOS 15 이상에서 차단되면 **시스템 설정 → 개인정보 보호 및 보안**에서 **그래도 열기**를 누른 뒤 다시 실행합니다.
+   - 처음 한 번만 이렇게 하면 되고, 다음부터는 더블클릭으로 실행합니다.
+   - Apple Silicon / Intel Mac에 맞는 파일을 자동으로 골라 실행합니다.
+4. 터미널 창이 열리고 브라우저에 지문등록 화면이 열립니다. **사용하는 동안 터미널 창을 닫지 마세요.**
+
+> 기존 `PcscBridge.exe`(Windows 전용)도 같은 방식으로 계속 사용할 수 있습니다. 두 브리지는 같은 포트(8765)를 쓰므로 **하나만 실행**하세요.
+
 ### 2. GitHub 사이트에서 시작하는 경우
 
-- GitHub 사이트(`https://byungku.github.io/...`)에서 주황색 안내의 **PcscBridge.exe 다운로드**로 받아 실행하면, 열려 있던 GitHub 화면이 **자동으로 연결**되고 새 탭은 열리지 않습니다.
+- GitHub 사이트(`https://byungku.github.io/...`)의 주황색 안내에 **내 컴퓨터(Windows/Mac)에 맞는 FPCBridge 다운로드 버튼**이 나옵니다. 받아서 실행하면 열려 있던 GitHub 화면이 **자동으로 연결**되고 새 탭은 열리지 않습니다.
 - Chrome이 GitHub 화면의 연결을 막아 4초 안에 연결되는 화면이 없으면, 작업 화면이 새 탭(`http://localhost:8765/`)으로 열립니다.
 - 이미 브리지를 실행했다면 안내의 **로컬 화면 열기**를 누르세요.
 - GitHub 사이트 화면에서 바로 리더기를 쓰려면 Chrome 주소창 왼쪽 **사이트 정보 아이콘 → 사이트 설정 → 로컬 네트워크 액세스(또는 "이 기기의 앱")를 허용**해야 합니다. Chrome은 보안상 인터넷 사이트가 PC 안의 프로그램(localhost)에 접속하는 것을 기본으로 막기 때문입니다. 로컬 화면을 쓰면 이 설정이 필요 없습니다.
 
 ### 3. 폴더째 사용 (파일서버·로컬 PC)
 
-`UBEnrollmentWeb` 폴더 안의 **PcscBridge.exe**를 더블클릭하면 같은 방식으로 `http://localhost:8765/`가 열립니다. exe 옆에 `web` 폴더가 있으면 그 폴더의 파일을 우선 사용합니다. 파일서버(`\\서버\공유\...`)에 있는 exe를 바로 실행해도 됩니다.
+`UBEnrollmentWeb` 폴더 안의 **FPCBridge.exe**(또는 PcscBridge.exe)를 더블클릭하면 같은 방식으로 `http://localhost:8765/`가 열립니다. 실행 파일 옆에 `web` 폴더가 있으면 그 폴더의 파일을 우선 사용합니다. 파일서버(`\\서버\공유\...`)에 있는 exe를 바로 실행해도 됩니다.
 
 ### 브리지 실행 옵션
 
 ```
+FPCBridge.exe  [--port 8765] [--web <dir>] [--allow-origin <https://주소>] [--no-browser]
 PcscBridge.exe [--port 8765] [--web <dir>] [--allow-origin <https://주소>] [--no-browser]
 ```
+
+Mac에서는 터미널에서 `./FPCBridge.command --no-browser`처럼 같은 옵션을 붙여 실행할 수 있습니다.
 
 | 옵션 | 설명 |
 | --- | --- |
@@ -50,10 +68,10 @@ PcscBridge.exe [--port 8765] [--web <dir>] [--allow-origin <https://주소>] [--
 
 ```
 [사용자 PC]                                                    [인터넷]
- 리더기 ─ PcscBridge.exe ─ ws://localhost:8765/pcsc ─ 브라우저 ── https://byungku.github.io/... (웹 화면)
+ 리더기 ─ FPCBridge ─ ws://localhost:8765/pcsc ─ 브라우저 ── https://byungku.github.io/... (웹 화면)
 ```
 
-- 브라우저는 보안상 PC/SC 리더기에 직접 접근할 수 없어서, 로컬 브리지(`PcscBridge.exe`)가 **리더기 목록 / 연결 / APDU 전송 / 연결 해제** 네 가지만 WebSocket으로 제공합니다.
+- 브라우저는 보안상 PC/SC 리더기에 직접 접근할 수 없어서, 로컬 브리지(`FPCBridge` / `PcscBridge.exe`)가 **리더기 목록 / 연결 / APDU 전송 / 연결 해제** 네 가지만 WebSocket으로 제공합니다.
 - 애플릿 선택, SCP02 인증, 등록, 매칭, 초기화, 삭제 등 **카드 로직은 모두 브라우저(JS)에서 실행**됩니다.
 - 브리지는 아래 주소의 웹 화면만 접속을 허용하고, 그 밖의 사이트는 거부(403)합니다.
   - `localhost`, `127.0.0.1` (로컬 실행)
@@ -66,10 +84,21 @@ PcscBridge.exe [--port 8765] [--web <dir>] [--allow-origin <https://주소>] [--
 ```
 UBEnrollmentWeb/
 ├─ index.html            web/index.html 로 이동 (폴더 주소로 접속하거나 더블클릭할 때)
-├─ PcscBridge.exe        로컬 PC/SC 브리지 + 웹 화면 내장 (v1.2.1)
+├─ FPCBridge.exe         Windows용 브리지 + 웹 화면 내장 (v2.0.0, Go)
+├─ FPCBridge-mac.zip     Mac용 브리지 (Apple Silicon·Intel + FPCBridge.command 실행기)
+├─ PcscBridge.exe        기존 Windows 전용 브리지 + 웹 화면 내장 (v1.2.1, C#)
 ├─ README.md
 ├─ start.bat             (구버전 실행 스크립트, 사용하지 않아도 됨)
-├─ bridge/
+├─ fpcbridge/            FPCBridge 소스 (Go)
+│  ├─ main.go            HTTP/WebSocket 서버, 허용 주소 검사, 웹 화면 제공
+│  ├─ websocket.go       WebSocket 최소 구현 (외부 라이브러리 없음)
+│  ├─ pcsc.go            PC/SC 공통 로직
+│  ├─ pcsc_windows.go    winscard.dll 호출
+│  ├─ pcsc_darwin.go     macOS PCSC.framework 호출 (purego, cgo 불필요)
+│  ├─ tools/pack/        Mac용 zip 생성 도구 (실행 권한 포함)
+│  ├─ webdist/           빌드 때 web 폴더를 복사해 넣는 곳 (직접 수정하지 않음)
+│  └─ build.bat          Windows·Mac 3종 빌드
+├─ bridge/               PcscBridge 소스 (C#)
 │  ├─ PcscBridge.cs      winscard.dll ↔ WebSocket 브리지 + 정적 웹 서버
 │  └─ build.bat          .NET Framework 내장 csc.exe 로 빌드 (SDK 불필요)
 └─ web/
@@ -145,14 +174,20 @@ SCP02 인증(INITIALIZE UPDATE + EXTERNAL AUTHENTICATE) 결과는 원본 `UBScp0
 2. 바뀐 파일을 끌어다 놓고 **Commit changes**를 누릅니다.
    - `UBEnrollmentWeb` 폴더 안에서는 폴더 자체가 아니라 **내용물**을 올려야 폴더가 겹치지 않습니다.
 3. 1~2분 뒤(Actions 탭에 ✅) 사이트에 반영되며, 사용자는 **Ctrl + F5**로 새로고침하면 됩니다.
-4. `PcscBridge.exe`를 바꾼 경우(웹 화면 수정 포함)에는 각 사용자가 exe를 **다시 내려받아야** 합니다.
+4. 브리지(`FPCBridge.exe`, `FPCBridge-mac.zip`, `PcscBridge.exe`)를 바꾼 경우(웹 화면 수정 포함)에는 각 사용자가 브리지를 **다시 내려받아야** 합니다.
+5. `fpcbridge\webdist` 폴더는 빌드용 복사본이라 GitHub에 올리지 않아도 됩니다.
 
 ## 브리지 다시 빌드하기
 
-`bridge\build.bat`을 실행하면 `PcscBridge.exe`가 새로 만들어집니다. Windows에 기본으로 있는 .NET Framework 4.x 컴파일러를 사용하므로 별도 설치가 필요 없습니다.
+**`web` 폴더의 파일을 수정한 경우에도 반드시 다시 빌드**하세요. 웹 화면이 브리지 안에 들어가므로, 다시 빌드해야 브리지만 받은 사용자에게 반영됩니다.
 
-- **`web` 폴더의 파일을 수정한 경우에도 반드시 다시 빌드**하세요. 웹 화면이 exe 안에 들어가므로, 다시 빌드해야 exe만 받은 사용자에게 반영됩니다.
-- `bridge\PcscBridge.cs`를 수정한 경우에도 같은 방법으로 빌드합니다.
+| 브리지 | 빌드 방법 | 결과물 | 필요한 것 |
+| --- | --- | --- | --- |
+| FPCBridge | `fpcbridge\build.bat` | `FPCBridge.exe`, `FPCBridge-mac.zip` | Go 1.27 이상 (없으면 `%USERPROFILE%\tools\go`를 사용) |
+| PcscBridge | `bridge\build.bat` | `PcscBridge.exe` | 없음 (Windows 내장 .NET Framework 4.x 컴파일러 사용) |
+
+- FPCBridge는 Windows PC 한 대에서 **Windows용과 Mac용(Apple Silicon·Intel)을 모두** 만듭니다. Mac용 Apple Silicon 파일은 빌드할 때 자동으로 서명(ad-hoc)되어 M 시리즈 Mac에서도 실행됩니다.
+- Mac용은 이 PC에서 실행해 볼 수 없으므로, 바꾼 뒤에는 Mac에서 한 번 실행해 확인하세요.
 
 ## 주의사항
 
