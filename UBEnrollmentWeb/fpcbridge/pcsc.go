@@ -143,6 +143,15 @@ func (s *cardSession) Transmit(apdu []byte) ([]byte, error) {
 	return rapdu, nil
 }
 
+// Status reports whether the connected card is still on the reader (SCardStatus; no APDU is sent).
+func (s *cardSession) Status() (bool, int32) {
+	if !s.hasCard {
+		return false, 0
+	}
+	rc := cardStatus(s.card)
+	return rc == scardSuccess, rc
+}
+
 func (s *cardSession) Disconnect() { s.disconnectCard(scardUnpowerCard) }
 
 func (s *cardSession) disconnectCard(disposition uint32) {

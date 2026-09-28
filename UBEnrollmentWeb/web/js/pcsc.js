@@ -115,4 +115,15 @@ class PcscBridge extends EventTarget {
   async disconnect() {
     return this.request('disconnect');
   }
+
+  // Is the connected card still on the reader? (no APDU is sent)
+  // Returns null when the bridge is too old to support it.
+  async cardPresent() {
+    try {
+      return !!(await this.request('status')).present;
+    } catch (e) {
+      if (/Unknown command/i.test(e.message)) return null;
+      throw e;
+    }
+  }
 }

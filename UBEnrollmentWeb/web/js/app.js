@@ -230,6 +230,7 @@
     clearTimeout(bridgeRetry);
     try {
       await bridge.open();
+      bridgeHasStatus = true; // re-detect: the user may have started a newer bridge
       setBridgeStatus(true);
       await readerListLoad();
     } catch (e) {
@@ -918,21 +919,21 @@
   }
 
   // ---------------------------------------------------------------- MATCH tab: auto connect + match
-  // While the MATCH tab is open and no card is connected, try to connect once per second.
-  // A placed card is connected and matched as if CONNECT and MATCH had been pressed.
-  const AUTO_MATCH_POLL_MS = 1000;
+  // While the MATCH tab is open and no card is connected, every reader (contact and contactless)
+  // is tried every 0.5 s. The first reader holding a card is connected and matched as if
+  // CONNECT and MATCH had been pressed.
+  const AUTO_MATCH_POLL_MS = 500;
   let autoMatchBusy = false;
-  let autoWaitRemoval = false; // last card failed to connect/read: wait until it is taken off
+  let bridgeHasStatus = true; // false once an older bridge rejects the 'status' command
+  const autoBlockedReaders = new Set(); // card there failed to connect/read: skip until it is removed
 
   function isCardGoneError(message) {
     return /REMOVED_CARD|NO_SMARTCARD|RESET_CARD|UNPOWERED_CARD|UNRESPONSIVE_CARD|0x80100069|0x8010000C|0x80100068|0x80100067|0x80100066/
       .test(message || '');
   }
 
-  function autoMatchReader() {
-    if (selectedReaderName) return selectedReaderName;
-    const readers = Array.from($('cbSelReader').options).map((o) => o.value).filter(Boolean);
-    return readers.find((r) => /contactless/i.test(r)) || readers[0] || null;
+  function autoMatchReaders() {
+    return Array.from($('cbSelReader').options).map((o) => o.value).filter(Boolean);
   }
 
   function updateMatchHint() {
@@ -940,56 +941,95 @@
     if (!bridge.connected) text = 'PC/SC 브리지에 연결되지 않았습니다.';
     else if (activeCard && matchRunning) text = '매칭 중입니다. CANCEL을 누르면 멈춥니다.';
     else if (activeCard) text = 'MATCH를 누르면 매칭을 시작합니다.';
-    else if (!autoMatchReader()) text = '리더기를 연결해 주세요.';
-    else if (autoWaitRemoval) text = '카드를 리더기에서 뗀 뒤 다시 올려 주세요.';
-    else text = '카드를 리더기에 올려 주세요. 자동으로 매칭을 시작합니다.';
+    else if (autoMatchReaders().length === 0) text = '리더기를 연결해 주세요.';
+    else if (autoBlockedReaders.size > 0) text = '카드를 리더기에서 떼거나 뽑은 뒤 다시 올려(꽂아) 주세요.';
+    else text = '카드를 리더기에 올리거나(비접촉) 꽂아 주세요(접촉). 자동으로 매칭을 시작합니다.';
     $('matchHint').textContent = text;
+  }
+
+  // Connected but idle (not matching, e.g. after CANCEL): nothing talks to the card, so a card taken
+  // off the reader would go unnoticed and the next card would be ignored. Ask the reader instead.
+  async function checkIdleCardRemoved() {
+    if (!bridgeHasStatus || matchRunning || matchBusy || enrollBusy || tEnroll.enabled || tInit.enabled) return;
+    let present;
+    try {
+      present = await bridge.cardPresent();
+    } catch (e) {
+      return;
+    }
+    if (present === null) {
+      bridgeHasStatus = false;
+      return;
+    }
+    if (!present && activeCard && !matchRunning && !uiBusy) {
+      cardAppendText('[CARD REMOVED]', 'red', true, true);
+      autoBlockedReaders.delete(selectedReaderName);
+      await updateDisconnectionUI();
+    }
   }
 
   async function autoMatchTick() {
     if ($('tbMatch').hidden) return;
     updateMatchHint();
-    if (autoMatchBusy || uiBusy || activeCard || !bridge.connected || $('msgBox').open) return;
+    if (autoMatchBusy || uiBusy || !bridge.connected || $('msgBox').open) return;
 
-    const reader = autoMatchReader();
-    if (!reader) return;
+    if (activeCard) {
+      autoMatchBusy = true;
+      try {
+        await checkIdleCardRemoved();
+      } finally {
+        autoMatchBusy = false;
+        updateMatchHint();
+      }
+      return;
+    }
+
+    const readers = autoMatchReaders();
+    if (readers.length === 0) return;
 
     autoMatchBusy = true;
     try {
-      let atr;
-      try {
-        ({ atr } = await bridge.connect(reader));
-      } catch (e) {
-        autoWaitRemoval = false; // no card on the reader
-        return;
-      }
-
-      if (autoWaitRemoval || uiBusy || activeCard || $('tbMatch').hidden) {
-        // Same failed card still there (or the user took over meanwhile): release it and keep waiting.
-        try { if (!activeCard) await bridge.disconnect(); } catch (e) { /* ignore */ }
-        return;
-      }
-
-      uiBusy = true;
-      try {
-        selectedReaderName = reader;
-        $('cbSelReader').value = reader;
-        cardAppendText('[AUTO DETECT] ' + reader, 'orange', true, true);
-
-        if (!await afterCardConnected(atr)) {
-          autoWaitRemoval = true;
-          return;
+      for (const reader of readers) {
+        let atr;
+        try {
+          ({ atr } = await bridge.connect(reader));
+        } catch (e) {
+          autoBlockedReaders.delete(reader); // no card in/on this reader
+          continue;
         }
-        await fpMatch(false);
-      } catch (ex) {
-        autoWaitRemoval = true;
-        await updateDisconnectionUI();
-      } finally {
-        uiBusy = false;
+
+        if (autoBlockedReaders.has(reader) || uiBusy || activeCard || $('tbMatch').hidden) {
+          // Same failed card still there (or the user took over meanwhile): release it and keep waiting.
+          try { if (!activeCard) await bridge.disconnect(); } catch (e) { /* ignore */ }
+          continue;
+        }
+
+        await autoConnectAndMatch(reader, atr);
+        return;
       }
     } finally {
       autoMatchBusy = false;
       updateMatchHint();
+    }
+  }
+
+  async function autoConnectAndMatch(reader, atr) {
+    uiBusy = true;
+    try {
+      selectedReaderName = reader;
+      $('cbSelReader').value = reader;
+      cardAppendText('[AUTO DETECT] ' + reader, 'orange', true, true);
+
+      if (!await afterCardConnected(atr)) {
+        autoBlockedReaders.add(reader);
+        return;
+      }
+      await fpMatch(false);
+    } catch (ex) {
+      autoBlockedReaders.add(reader);
+      await updateDisconnectionUI();
+    } finally {
+      uiBusy = false;
     }
   }
 

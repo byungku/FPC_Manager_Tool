@@ -9,6 +9,7 @@
 //	{ "id": 3, "cmd": "connect", "reader": "..." }       -> { "id":3, "ok":true, "atr":"3B..", "protocol":"T1" }
 //	{ "id": 4, "cmd": "transmit", "apdu": "00A40400.." } -> { "id":4, "ok":true, "rapdu":"..9000" }
 //	{ "id": 5, "cmd": "disconnect" }                     -> { "id":5, "ok":true }
+//	{ "id": 6, "cmd": "status" }                         -> { "id":6, "ok":true, "present":true }   (no APDU sent)
 //	errors                                               -> { "id":n, "ok":false, "error":"...", "code":"0x8010000C" }
 //
 // Usage: FPCBridge [--port 8765] [--web <dir>] [--allow-origin <origin>]... [--no-browser]
@@ -38,7 +39,7 @@ import (
 
 const (
 	appName       = "FPCBridge"
-	version       = "2.0.0"
+	version       = "2.1.0"
 	hostedURL     = "https://byungku.github.io/FPC_Manager_Tool/UBEnrollmentWeb/web/"
 	browserWaitMs = 4000
 )
@@ -336,6 +337,12 @@ func dispatch(s *cardSession, reqText []byte) []byte {
 			if err == nil {
 				rapdu, err = s.Transmit(apdu)
 				resp["rapdu"] = strings.ToUpper(hex.EncodeToString(rapdu))
+			}
+		case "status":
+			present, rc := s.Status()
+			resp["present"] = present
+			if rc != scardSuccess {
+				resp["code"] = fmt.Sprintf("0x%08X", uint32(rc))
 			}
 		case "disconnect":
 			s.Disconnect()

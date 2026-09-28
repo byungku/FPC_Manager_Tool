@@ -111,6 +111,16 @@ func getATR(card cardHandle) []byte {
 	return atr[:atrLen]
 }
 
+// cardStatus returns SCARD_S_SUCCESS while the card is present, or e.g. SCARD_W_REMOVED_CARD.
+func cardStatus(card cardHandle) int32 {
+	name := make([]byte, 256)
+	nameLen := uint32(len(name))
+	var state, proto uint32
+	atr := make([]byte, 64)
+	atrLen := uint32(len(atr))
+	return sCardStatus(int32(card), &name[0], &nameLen, &state, &proto, &atr[0], &atrLen)
+}
+
 func transmit(card cardHandle, proto uint32, apdu []byte) ([]byte, int32) {
 	if len(apdu) == 0 {
 		return nil, int32(-2146435068) // 0x80100004 SCARD_E_INVALID_PARAMETER

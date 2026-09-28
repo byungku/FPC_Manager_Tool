@@ -11,6 +11,7 @@
 //   { "id": 3, "cmd": "connect", "reader": "..." }       -> { "id":3, "ok":true, "atr":"3B..", "protocol":"T1" }
 //   { "id": 4, "cmd": "transmit", "apdu": "00A40400.." } -> { "id":4, "ok":true, "rapdu":"..9000" }
 //   { "id": 5, "cmd": "disconnect" }                     -> { "id":5, "ok":true }
+//   { "id": 6, "cmd": "status" }                         -> { "id":6, "ok":true, "present":true }   (no APDU sent)
 //   errors                                               -> { "id":n, "ok":false, "error":"...", "code":"0x8010000C" }
 
 using System;
@@ -65,6 +66,9 @@ namespace UBPcscBridge
 
         [DllImport("winscard.dll")]
         public static extern int SCardGetAttrib(IntPtr hCard, uint dwAttrId, byte[] pbAttr, ref int pcbAttrLen);
+
+        [DllImport("winscard.dll", EntryPoint = "SCardStatusW", CharSet = CharSet.Unicode)]
+        public static extern int SCardStatus(IntPtr hCard, char[] szReaderName, ref int pcchReaderLen, out int pdwState, out int pdwProtocol, byte[] pbAtr, ref int pcbAtrLen);
 
         static readonly Dictionary<int, string> names = new Dictionary<int, string>
         {
@@ -241,6 +245,22 @@ namespace UBPcscBridge
             return result;
         }
 
+        // Whether the connected card is still on the reader (SCardStatus; no APDU is sent).
+        public bool Status(out int code)
+        {
+            code = 0;
+            if (card == IntPtr.Zero)
+                return false;
+
+            char[] name = new char[256];
+            int nameLen = name.Length;
+            int state, proto;
+            byte[] atr = new byte[64];
+            int atrLen = atr.Length;
+            code = WinSCard.SCardStatus(card, name, ref nameLen, out state, out proto, atr, ref atrLen);
+            return code == 0;
+        }
+
         public void DisconnectCard(uint disposition)
         {
             if (card != IntPtr.Zero)
@@ -284,7 +304,7 @@ namespace UBPcscBridge
 
     class Program
     {
-        const string VERSION = "1.2.1";
+        const string VERSION = "1.3.0";
         const int BROWSER_WAIT_MS = 4000;
         static int clientCount; // WebSocket sessions accepted since start
         const string HOSTED_URL = "https://byungku.github.io/FPC_Manager_Tool/UBEnrollmentWeb/web/";
@@ -625,6 +645,15 @@ namespace UBPcscBridge
                     {
                         byte[] rapdu = session.Transmit(Hex.To((string)req["apdu"]));
                         resp["rapdu"] = Hex.From(rapdu, rapdu.Length);
+                        break;
+                    }
+
+                    case "status":
+                    {
+                        int code;
+                        resp["present"] = session.Status(out code);
+                        if (code != 0)
+                            resp["code"] = string.Format("0x{0:X8}", code);
                         break;
                     }
 

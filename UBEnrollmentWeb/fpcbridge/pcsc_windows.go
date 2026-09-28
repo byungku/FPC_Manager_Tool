@@ -21,6 +21,7 @@ var (
 	procSCardDisconnect       = winscard.NewProc("SCardDisconnect")
 	procSCardTransmit         = winscard.NewProc("SCardTransmit")
 	procSCardGetAttrib        = winscard.NewProc("SCardGetAttrib")
+	procSCardStatusW          = winscard.NewProc("SCardStatusW")
 )
 
 const scardAttrATRString = 0x00090303
@@ -96,6 +97,20 @@ func getATR(card cardHandle) []byte {
 		return nil
 	}
 	return atr[:n]
+}
+
+// cardStatus returns SCARD_S_SUCCESS while the card is present, or e.g. SCARD_W_REMOVED_CARD.
+func cardStatus(card cardHandle) int32 {
+	name := make([]uint16, 256)
+	nameLen := uint32(len(name))
+	var state, proto uint32
+	atr := make([]byte, 64)
+	atrLen := uint32(len(atr))
+	r, _, _ := procSCardStatusW.Call(uintptr(card),
+		uintptr(unsafe.Pointer(&name[0])), uintptr(unsafe.Pointer(&nameLen)),
+		uintptr(unsafe.Pointer(&state)), uintptr(unsafe.Pointer(&proto)),
+		uintptr(unsafe.Pointer(&atr[0])), uintptr(unsafe.Pointer(&atrLen)))
+	return rc(r)
 }
 
 func transmit(card cardHandle, proto uint32, apdu []byte) ([]byte, int32) {
