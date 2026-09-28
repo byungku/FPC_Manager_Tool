@@ -284,11 +284,15 @@ namespace UBPcscBridge
 
     class Program
     {
-        const string VERSION = "1.0.0";
+        const string VERSION = "1.1.0";
+        const string HOSTED_URL = "https://byungku.github.io/FPC_Manager_Tool/";
 
         static int port = 8765;
         static string webRoot;
-        static readonly List<string> allowedOrigins = new List<string>();
+
+        // Hosted copy of the web app (GitHub Pages). Allowed without any option.
+        static readonly string[] builtInOrigins = { "https://byungku.github.io" };
+        static readonly List<string> allowedOrigins = new List<string>(builtInOrigins);
         static readonly JavaScriptSerializer json = new JavaScriptSerializer();
 
         static readonly Dictionary<string, string> mimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -343,17 +347,18 @@ namespace UBPcscBridge
 
             string url = string.Format("http://localhost:{0}/", port);
             Console.WriteLine("UB PC/SC Bridge v{0}", VERSION);
-            Console.WriteLine("  Web app   : {0}", url);
+            Console.WriteLine("  Web app   : {0}", Directory.Exists(webRoot) ? url : HOSTED_URL);
             Console.WriteLine("  WebSocket : ws://localhost:{0}/pcsc", port);
             Console.WriteLine("  Web root  : {0}{1}", webRoot, Directory.Exists(webRoot) ? "" : "  (not found - static serving disabled)");
             if (allowedOrigins.Count > 0)
-                Console.WriteLine("  Extra allowed origins: {0}", string.Join(", ", allowedOrigins));
+                Console.WriteLine("  Allowed web origins: {0}", string.Join(", ", allowedOrigins));
             Console.WriteLine("Press Ctrl+C to stop.");
             Console.WriteLine();
 
-            if (openBrowser && Directory.Exists(webRoot))
+            if (openBrowser)
             {
-                try { Process.Start(url); } catch { }
+                // Local web folder next to the exe -> serve it; exe downloaded alone -> open the hosted copy.
+                try { Process.Start(Directory.Exists(webRoot) ? url : HOSTED_URL); } catch { }
             }
 
             while (true)

@@ -22,6 +22,25 @@
   </nav>
 
   <div class="main">
+    <!-- Shown while the local PC/SC bridge cannot be reached -->
+    <div class="bridge-banner" id="bridgeBanner" role="alert" hidden>
+      <div class="bb-text">
+        <strong>PC/SC 브리지가 실행되지 않았습니다.</strong>
+        <span>리더기를 사용하려면 이 PC에서 <b>PcscBridge.exe</b>를 실행하세요. 실행하면 자동으로 연결됩니다.</span>
+      </div>
+      <div class="bb-actions">
+        <a class="tb-btn primary" id="bridgeDownload"
+           href="https://github.com/byungku/FPC_Manager_Tool/raw/main/UBEnrollmentWeb/PcscBridge.exe" download>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+          <span>PcscBridge.exe 다운로드</span>
+        </a>
+        <button class="tb-btn" id="bridgeRetry">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 4v7h-7"/></svg>
+          <span>다시 연결</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Connection panel (pConnect) -->
     <header class="connect-panel">
       <div class="cp-main">

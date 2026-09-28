@@ -88,6 +88,22 @@ button { font-family: inherit; }
   padding: 3px 8px 8px 0;
 }
 
+/* ---------- bridge offline banner ---------- */
+.bridge-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 12px 20px;
+  background: #fff4e0;
+  border-left: 5px solid var(--accent);
+  color: #5a3300;
+}
+.bb-text { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.bb-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.bridge-banner .tb-btn { --tb-h: 36px; --tb-radius: 8px; height: 36px; border-radius: 8px; text-decoration: none; text-transform: none; letter-spacing: 0; }
+
 /* ---------- connection toolbar ---------- */
 .connect-panel {
   --tb-h: 40px;

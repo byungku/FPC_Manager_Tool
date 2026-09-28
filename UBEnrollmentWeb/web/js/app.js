@@ -226,6 +226,7 @@
   });
 
   function setBridgeStatus(online) {
+    $('bridgeBanner').hidden = online;
     const el = $('bridgeStatus');
     el.classList.toggle('online', online);
     el.querySelector('.label').textContent = online
@@ -1111,6 +1112,7 @@
     $('msgOk').addEventListener('click', closeMessageBox);
     $('msgBox').addEventListener('close', closeMessageBox); // Esc
 
+    $('bridgeRetry').addEventListener('click', guarded(connectBridge));
     $('cbSelReader').addEventListener('change', (e) => { selectedReaderName = e.target.value || null; });
     $('btnReload').addEventListener('click', guarded(async () => {
       if (!bridge.connected) await connectBridge();
