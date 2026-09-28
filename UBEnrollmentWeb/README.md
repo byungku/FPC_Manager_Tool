@@ -181,6 +181,7 @@ SCP02 인증(INITIALIZE UPDATE + EXTERNAL AUTHENTICATE) 결과는 원본 `UBScp0
 3. 1~2분 뒤(Actions 탭에 ✅) 사이트에 반영되며, 사용자는 **Ctrl + F5**로 새로고침하면 됩니다.
 4. 브리지(`FPCBridge.exe`, `FPCBridge-mac.zip`, `PcscBridge.exe`)를 바꾼 경우(웹 화면 수정 포함)에는 각 사용자가 브리지를 **다시 내려받아야** 합니다.
 5. `fpcbridge\webdist` 폴더는 빌드용 복사본이라 GitHub에 올리지 않아도 됩니다.
+6. `web` 폴더의 CSS/JS를 바꿨다면 `web\index.html` 안의 `?v=20260928a` 값을 새 값(예: 날짜+문자)으로 **모두 바꿔** 주세요. 브라우저가 이전 파일을 캐시해 두었다가 새 화면과 섞어 쓰는 것을 막아 줍니다.
 
 ## 브리지 다시 빌드하기
 
