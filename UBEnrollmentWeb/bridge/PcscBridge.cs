@@ -284,8 +284,8 @@ namespace UBPcscBridge
 
     class Program
     {
-        const string VERSION = "1.1.0";
-        const string HOSTED_URL = "https://byungku.github.io/FPC_Manager_Tool/";
+        const string VERSION = "1.2.0";
+        const string HOSTED_URL = "https://byungku.github.io/FPC_Manager_Tool/UBEnrollmentWeb/web/";
 
         static int port = 8765;
         static string webRoot;
@@ -347,9 +347,10 @@ namespace UBPcscBridge
 
             string url = string.Format("http://localhost:{0}/", port);
             Console.WriteLine("UB PC/SC Bridge v{0}", VERSION);
-            Console.WriteLine("  Web app   : {0}", Directory.Exists(webRoot) ? url : HOSTED_URL);
+            bool localWeb = Directory.Exists(webRoot) || HasEmbeddedWeb();
+            Console.WriteLine("  Web app   : {0}", localWeb ? url : HOSTED_URL);
             Console.WriteLine("  WebSocket : ws://localhost:{0}/pcsc", port);
-            Console.WriteLine("  Web root  : {0}{1}", webRoot, Directory.Exists(webRoot) ? "" : "  (not found - static serving disabled)");
+            Console.WriteLine("  Web files : {0}", Directory.Exists(webRoot) ? webRoot : (HasEmbeddedWeb() ? "built-in" : "none"));
             if (allowedOrigins.Count > 0)
                 Console.WriteLine("  Allowed web origins: {0}", string.Join(", ", allowedOrigins));
             Console.WriteLine("Press Ctrl+C to stop.");
@@ -357,8 +358,8 @@ namespace UBPcscBridge
 
             if (openBrowser)
             {
-                // Local web folder next to the exe -> serve it; exe downloaded alone -> open the hosted copy.
-                try { Process.Start(Directory.Exists(webRoot) ? url : HOSTED_URL); } catch { }
+                // Open the locally served app (same machine, so no browser local-network restrictions).
+                try { Process.Start(localWeb ? url : HOSTED_URL); } catch { }
             }
 
             while (true)
@@ -470,31 +471,56 @@ namespace UBPcscBridge
             ctx.Response.Close();
         }
 
+        // Web files compiled into the exe by build.bat (logical names "web/<path>"),
+        // so the exe works on its own when downloaded without the web folder.
+        static bool HasEmbeddedWeb()
+        {
+            return System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceInfo("web/index.html") != null;
+        }
+
+        static byte[] ReadEmbedded(string rel)
+        {
+            using (Stream s = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("web/" + rel))
+            {
+                if (s == null)
+                    return null;
+                MemoryStream ms = new MemoryStream();
+                s.CopyTo(ms);
+                return ms.ToArray();
+            }
+        }
+
         static void ServeStatic(HttpListenerContext ctx)
         {
-            if (!Directory.Exists(webRoot))
+            string rel = Uri.UnescapeDataString(ctx.Request.Url.AbsolutePath).TrimStart('/');
+            if (rel.Length == 0 || rel.EndsWith("/"))
+                rel += "index.html";
+
+            byte[] body = null;
+
+            if (Directory.Exists(webRoot))
             {
-                Reply(ctx, 404, "Web root not found");
-                return;
+                // A web folder next to the exe takes precedence (easy to update without rebuilding).
+                string root = Path.GetFullPath(webRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                string full = Path.GetFullPath(Path.Combine(root, rel.Replace('/', Path.DirectorySeparatorChar)));
+                if (full.StartsWith(root, StringComparison.OrdinalIgnoreCase) && File.Exists(full))
+                    body = File.ReadAllBytes(full);
+            }
+            else if (!rel.Contains(".."))
+            {
+                body = ReadEmbedded(rel);
             }
 
-            string rel = Uri.UnescapeDataString(ctx.Request.Url.AbsolutePath).TrimStart('/');
-            if (rel.Length == 0)
-                rel = "index.html";
-
-            string root = Path.GetFullPath(webRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            string full = Path.GetFullPath(Path.Combine(root, rel.Replace('/', Path.DirectorySeparatorChar)));
-            if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !File.Exists(full))
+            if (body == null)
             {
                 Reply(ctx, 404, "Not found");
                 return;
             }
 
             string mime;
-            if (!mimeTypes.TryGetValue(Path.GetExtension(full), out mime))
+            if (!mimeTypes.TryGetValue(Path.GetExtension(rel), out mime))
                 mime = "application/octet-stream";
 
-            byte[] body = File.ReadAllBytes(full);
             ctx.Response.StatusCode = 200;
             ctx.Response.ContentType = mime;
             ctx.Response.Headers["Cache-Control"] = "no-cache";

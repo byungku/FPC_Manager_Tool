@@ -13,20 +13,24 @@ PC/SC 리더기로 지문카드에 지문을 등록하는 PC 툴 `UBEnrollmentMa
 
 ## 사용 방법
 
-### 1. 웹 주소로 사용 (권장)
+### 1. PcscBridge.exe 하나로 사용 (권장)
 
 1. PC에 PC/SC 리더기를 연결합니다.
 2. **PcscBridge.exe**를 내려받아 더블클릭합니다.
-   - 옵션 없이 실행하면 되고, 지문등록 웹이 브라우저에서 자동으로 열립니다.
+   - 웹 화면이 exe 안에 들어 있어서, **exe 하나만 있으면** 브라우저에 지문등록 화면(`http://localhost:8765/`)이 자동으로 열립니다.
    - "Windows에서 PC를 보호했습니다"가 나오면 **추가 정보 → 실행**을 누릅니다. (서명되지 않은 exe라서 나오는 경고입니다.)
    - **사용하는 동안 검은 콘솔 창을 닫지 마세요.** 이 창이 리더기와 브라우저를 연결합니다.
-3. 웹 화면 왼쪽 아래가 **Bridge: online**이면 READER를 선택하고 **CONNECT**를 누릅니다.
-   - Chrome이 "로컬 네트워크 액세스"를 물으면 **허용**을 누릅니다.
-   - 브리지가 꺼져 있으면 화면 위쪽에 주황색 안내와 **PcscBridge.exe 다운로드 / 다시 연결** 버튼이 나옵니다. 브리지를 실행하면 3초 안에 자동으로 연결됩니다.
+3. 화면 왼쪽 아래가 **Bridge: online**이면 READER를 선택하고 **CONNECT**를 누릅니다.
 
-### 2. 폴더째 사용 (파일서버·로컬 PC)
+### 2. GitHub 사이트에서 시작하는 경우
 
-`UBEnrollmentWeb` 폴더 안의 **PcscBridge.exe**를 더블클릭하면, 같은 폴더의 `web`을 제공하면서 `http://localhost:8765/`가 브라우저에서 열립니다. 파일서버(`\\서버\공유\...`)에 있는 exe를 바로 실행해도 됩니다.
+- GitHub 사이트(`https://byungku.github.io/...`)는 **PcscBridge.exe를 받는 안내 페이지**로 사용합니다. 주황색 안내의 **PcscBridge.exe 다운로드**로 받아 실행하면, 실제 작업 화면이 새 탭(`http://localhost:8765/`)으로 열립니다.
+- 이미 브리지를 실행했다면 안내의 **로컬 화면 열기**를 누르세요.
+- GitHub 사이트 화면에서 바로 리더기를 쓰려면 Chrome 주소창 왼쪽 **사이트 정보 아이콘 → 사이트 설정 → 로컬 네트워크 액세스(또는 "이 기기의 앱")를 허용**해야 합니다. Chrome은 보안상 인터넷 사이트가 PC 안의 프로그램(localhost)에 접속하는 것을 기본으로 막기 때문입니다. 로컬 화면을 쓰면 이 설정이 필요 없습니다.
+
+### 3. 폴더째 사용 (파일서버·로컬 PC)
+
+`UBEnrollmentWeb` 폴더 안의 **PcscBridge.exe**를 더블클릭하면 같은 방식으로 `http://localhost:8765/`가 열립니다. exe 옆에 `web` 폴더가 있으면 그 폴더의 파일을 우선 사용합니다. 파일서버(`\\서버\공유\...`)에 있는 exe를 바로 실행해도 됩니다.
 
 ### 브리지 실행 옵션
 
@@ -61,7 +65,7 @@ PcscBridge.exe [--port 8765] [--web <dir>] [--allow-origin <https://주소>] [--
 ```
 UBEnrollmentWeb/
 ├─ index.html            web/index.html 로 이동 (폴더 주소로 접속하거나 더블클릭할 때)
-├─ PcscBridge.exe        로컬 PC/SC 브리지 (v1.1.0)
+├─ PcscBridge.exe        로컬 PC/SC 브리지 + 웹 화면 내장 (v1.2.0)
 ├─ README.md
 ├─ start.bat             (구버전 실행 스크립트, 사용하지 않아도 됨)
 ├─ bridge/
@@ -140,11 +144,14 @@ SCP02 인증(INITIALIZE UPDATE + EXTERNAL AUTHENTICATE) 결과는 원본 `UBScp0
 2. 바뀐 파일을 끌어다 놓고 **Commit changes**를 누릅니다.
    - `UBEnrollmentWeb` 폴더 안에서는 폴더 자체가 아니라 **내용물**을 올려야 폴더가 겹치지 않습니다.
 3. 1~2분 뒤(Actions 탭에 ✅) 사이트에 반영되며, 사용자는 **Ctrl + F5**로 새로고침하면 됩니다.
-4. `PcscBridge.exe`를 바꾼 경우에는 각 사용자가 exe를 **다시 내려받아야** 합니다.
+4. `PcscBridge.exe`를 바꾼 경우(웹 화면 수정 포함)에는 각 사용자가 exe를 **다시 내려받아야** 합니다.
 
 ## 브리지 다시 빌드하기
 
-`bridge\PcscBridge.cs`를 수정한 경우 `bridge\build.bat`을 실행하면 `PcscBridge.exe`가 새로 만들어집니다. Windows에 기본으로 있는 .NET Framework 4.x 컴파일러를 사용하므로 별도 설치가 필요 없습니다.
+`bridge\build.bat`을 실행하면 `PcscBridge.exe`가 새로 만들어집니다. Windows에 기본으로 있는 .NET Framework 4.x 컴파일러를 사용하므로 별도 설치가 필요 없습니다.
+
+- **`web` 폴더의 파일을 수정한 경우에도 반드시 다시 빌드**하세요. 웹 화면이 exe 안에 들어가므로, 다시 빌드해야 exe만 받은 사용자에게 반영됩니다.
+- `bridge\PcscBridge.cs`를 수정한 경우에도 같은 방법으로 빌드합니다.
 
 ## 주의사항
 

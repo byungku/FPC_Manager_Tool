@@ -182,6 +182,9 @@
       sel.selectedIndex = 0;
     }
 
+    // "Open local screen" only makes sense on a hosted copy (e.g. GitHub Pages)
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') $('bridgeOpenLocal').hidden = true;
+
     // Refit when the window resizes or the ENROLL tab becomes visible
     if (window.ResizeObserver) new ResizeObserver(fitEnrollTiles).observe(grid);
     else window.addEventListener('resize', fitEnrollTiles);

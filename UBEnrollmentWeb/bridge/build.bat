@@ -1,6 +1,7 @@
 @echo off
 rem Builds PcscBridge.exe with the C# compiler that ships with .NET Framework 4.x (no SDK needed).
-setlocal
+rem The files in ..\web are embedded into the exe, so the exe works on its own after download.
+setlocal EnableDelayedExpansion
 set CSC=%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe
 if not exist "%CSC%" set CSC=%WINDIR%\Microsoft.NET\Framework\v4.0.30319\csc.exe
 if not exist "%CSC%" (
@@ -9,8 +10,20 @@ if not exist "%CSC%" (
 )
 
 pushd "%~dp0"
-"%CSC%" /nologo /optimize+ /platform:anycpu /target:exe /out:..\PcscBridge.exe ^
-  /r:System.Web.Extensions.dll PcscBridge.cs
+pushd ..\web
+set "ROOT=%CD%\"
+popd
+
+rem Response file (overwritten each build) with one /resource per web file, logical name web/<relative path>
+set "RSP=%TEMP%\pcscbridge_build.rsp"
+> "%RSP%" echo /nologo /optimize+ /platform:anycpu /target:exe /out:..\PcscBridge.exe /r:System.Web.Extensions.dll
+for /r "%ROOT%" %%f in (*) do (
+  set "F=%%f"
+  set "REL=!F:%ROOT%=!"
+  set "NAME=!REL:\=/!"
+  >> "%RSP%" echo /resource:"..\web\!REL!",web/!NAME!
+)
+"%CSC%" @"%RSP%" PcscBridge.cs
 set RC=%ERRORLEVEL%
 popd
 

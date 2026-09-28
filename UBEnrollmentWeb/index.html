@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <title>FPC Manager Tool</title>
-  <meta http-equiv="refresh" content="0; url=web/">
-  <script>location.replace('web/' + location.search);</script>
+  <!-- Explicit web/index.html so it also works when double-clicked from a local folder or file share (file://) -->
+  <meta http-equiv="refresh" content="0; url=web/index.html">
+  <script>location.replace('web/index.html' + location.search);</script>
 </head>
 <body>
-  <p><a href="web/">FPC Manager Tool 열기</a></p>
+  <p><a href="web/index.html">FPC Manager Tool 열기</a></p>
 </body>
 </html>
