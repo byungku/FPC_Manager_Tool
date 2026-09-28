@@ -133,25 +133,9 @@ UBEnrollmentWeb/
 ### ABOUT
 - 툴 이름과 버전 정보
 
-### DEV (관리자 모드)
-- **Ctrl + Shift + F11**을 누르면 왼쪽 메뉴에 DEV가 나타납니다. (새로고침하면 다시 숨겨집니다.)
-- 컨트롤러 버전 / 애플릿 버전 / Block State 표시
-- **Send APDU**(Enter로도 전송), **Sensor Self-Test**
-- 손가락 선택 후 ENROLL / DELETE / MATCH
-- **Repeat matching**: 기본 체크. MATCH DELAY(기본 1000 ms), MATCH COUNT(기본 50) 설정 후 통계 표시
-  - 반복 매칭은 **DEV 화면의 MATCH 버튼에만** 적용되고, MATCH 탭은 항상 연속 단일 매칭으로 동작합니다.
-- **Card Log**: 주고받은 APDU 전체 기록 (CLEAR로 초기화)
-
 ### SETTING (키 설정)
 - ENC / MAC / DEK 키(각 32자리 16진수) 입력. 비워 두면 기본 키를 사용합니다.
 - 키는 **브라우저별로 저장**됩니다(localStorage). 원본의 `textKEY.txt`는 사용하지 않습니다.
-
-### 숨김 단축키
-| 단축키 | 기능 |
-| --- | --- |
-| Ctrl + Shift + F11 | DEV 메뉴 표시 |
-| Ctrl + Shift + F10 | MATCH 메뉴 표시 (기본으로 보이므로 영향 없음) |
-| Ctrl + Shift + F9 | 손가락 선택 표시 (기본으로 보이므로 영향 없음) |
 
 ## 원본(WinForms) 대비 차이
 
