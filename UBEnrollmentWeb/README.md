@@ -24,7 +24,8 @@ PC/SC 리더기로 지문카드에 지문을 등록하는 PC 툴 `UBEnrollmentMa
 
 ### 2. GitHub 사이트에서 시작하는 경우
 
-- GitHub 사이트(`https://byungku.github.io/...`)는 **PcscBridge.exe를 받는 안내 페이지**로 사용합니다. 주황색 안내의 **PcscBridge.exe 다운로드**로 받아 실행하면, 실제 작업 화면이 새 탭(`http://localhost:8765/`)으로 열립니다.
+- GitHub 사이트(`https://byungku.github.io/...`)에서 주황색 안내의 **PcscBridge.exe 다운로드**로 받아 실행하면, 열려 있던 GitHub 화면이 **자동으로 연결**되고 새 탭은 열리지 않습니다.
+- Chrome이 GitHub 화면의 연결을 막아 4초 안에 연결되는 화면이 없으면, 작업 화면이 새 탭(`http://localhost:8765/`)으로 열립니다.
 - 이미 브리지를 실행했다면 안내의 **로컬 화면 열기**를 누르세요.
 - GitHub 사이트 화면에서 바로 리더기를 쓰려면 Chrome 주소창 왼쪽 **사이트 정보 아이콘 → 사이트 설정 → 로컬 네트워크 액세스(또는 "이 기기의 앱")를 허용**해야 합니다. Chrome은 보안상 인터넷 사이트가 PC 안의 프로그램(localhost)에 접속하는 것을 기본으로 막기 때문입니다. 로컬 화면을 쓰면 이 설정이 필요 없습니다.
 
@@ -65,7 +66,7 @@ PcscBridge.exe [--port 8765] [--web <dir>] [--allow-origin <https://주소>] [--
 ```
 UBEnrollmentWeb/
 ├─ index.html            web/index.html 로 이동 (폴더 주소로 접속하거나 더블클릭할 때)
-├─ PcscBridge.exe        로컬 PC/SC 브리지 + 웹 화면 내장 (v1.2.0)
+├─ PcscBridge.exe        로컬 PC/SC 브리지 + 웹 화면 내장 (v1.2.1)
 ├─ README.md
 ├─ start.bat             (구버전 실행 스크립트, 사용하지 않아도 됨)
 ├─ bridge/

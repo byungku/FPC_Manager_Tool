@@ -284,7 +284,9 @@ namespace UBPcscBridge
 
     class Program
     {
-        const string VERSION = "1.2.0";
+        const string VERSION = "1.2.1";
+        const int BROWSER_WAIT_MS = 4000;
+        static int clientCount; // WebSocket sessions accepted since start
         const string HOSTED_URL = "https://byungku.github.io/FPC_Manager_Tool/UBEnrollmentWeb/web/";
 
         static int port = 8765;
@@ -358,8 +360,20 @@ namespace UBPcscBridge
 
             if (openBrowser)
             {
-                // Open the locally served app (same machine, so no browser local-network restrictions).
-                try { Process.Start(localWeb ? url : HOSTED_URL); } catch { }
+                string target = localWeb ? url : HOSTED_URL;
+                Task.Run(async () =>
+                {
+                    // An already-open page (e.g. the GitHub page that offered the download) reconnects
+                    // within its 3 s retry interval; only open a new tab if nobody connects.
+                    await Task.Delay(BROWSER_WAIT_MS);
+                    if (Interlocked.CompareExchange(ref clientCount, 0, 0) > 0)
+                    {
+                        Console.WriteLine("[{0:HH:mm:ss}] A web page is already connected - not opening a new browser tab.", DateTime.Now);
+                        return;
+                    }
+                    // Open the locally served app (same machine, so no browser local-network restrictions).
+                    try { Process.Start(target); } catch { }
+                });
             }
 
             while (true)
@@ -531,6 +545,7 @@ namespace UBPcscBridge
 
         static async Task RunSession(WebSocket ws, string origin)
         {
+            Interlocked.Increment(ref clientCount);
             Console.WriteLine("[{0:HH:mm:ss}] Client connected ({1})", DateTime.Now, string.IsNullOrEmpty(origin) ? "no origin" : origin);
 
             using (CardSession session = new CardSession())
