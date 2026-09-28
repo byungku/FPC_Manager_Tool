@@ -338,6 +338,15 @@ button { font-family: inherit; }
   gap: 60px;
 }
 
+.match-hint {
+  margin: -36px 0 0;
+  min-height: 1.4em;
+  color: var(--main-blue);
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
 /* about */
 .about {
   height: 100%;

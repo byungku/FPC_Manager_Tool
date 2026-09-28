@@ -13,7 +13,7 @@
   <nav class="nav">
     <img class="nav-logo" src="img/FingerPrint_Source_1st_scan.png" alt="">
     <button id="btnEnrollment" class="nav-btn" disabled><img src="img/enroll_white_icon.png" alt="">ENROLL</button>
-    <button id="btnMatch" class="nav-btn" disabled><img src="img/match_white_icon.png" alt="">MATCH</button>
+    <button id="btnMatch" class="nav-btn"><img src="img/match_white_icon.png" alt="">MATCH</button>
     <button id="btnAbout" class="nav-btn active"><img src="img/info_white_icon.png" alt="">ABOUT</button>
     <button id="btnDev" class="nav-btn" hidden><img src="img/dev_white_icon.png" alt="">DEV</button>
     <div class="bridge-status" id="bridgeStatus" title="Local PC/SC bridge">
@@ -112,6 +112,7 @@
         <div class="match-center">
           <div class="fp-tile large"><img id="pbMatch" src="img/FingerPrint_Source_1st.png" alt=""></div>
           <button id="btnMatching" class="btn big" disabled>MATCH</button>
+          <p class="match-hint" id="matchHint" aria-live="polite"></p>
         </div>
       </div>
 

@@ -189,7 +189,9 @@
     else window.addEventListener('resize', fitEnrollTiles);
 
     selectTab('tbAbout');
-    setEnabled(['btnDisconnect', 'btnEnrollment', 'btnMatch', 'btnSetting', 'btnInitalization'], false);
+    // MATCH stays available without a card: that tab connects automatically when a card is placed
+    setEnabled(['btnDisconnect', 'btnEnrollment', 'btnSetting', 'btnInitalization'], false);
+    setInterval(autoMatchTick, AUTO_MATCH_POLL_MS);
     $('btnDev').hidden = true;
     // Repeat matching is on by default (DEV tab only)
     $('cbMatch').checked = true;
@@ -716,7 +718,8 @@
         }
       }
     } catch (ex) {
-      await msgError(ex.message);
+      if (isCardGoneError(ex.message)) cardAppendText('[CARD REMOVED]', 'red', true, true);
+      else await msgError(ex.message);
       await updateDisconnectionUI();
       return;
     }
@@ -763,7 +766,7 @@
     }
   }
 
-  async function matchResultDsp(result) {
+  async function matchResultDsp(result, message) {
     const repeat = matchRepeat;
     let bResult = false;
 
@@ -788,7 +791,12 @@
         setMatchImage(IMG.fp);
         setText(['btnMatching', 'btnDevMatching'], 'MATCH');
         await updateDisconnectionUI();
-        await msgError('Exception', 'Matching Result');
+        if (isCardGoneError(message)) {
+          // Card taken off the reader: no popup; the MATCH tab waits for the next card.
+          cardAppendText('[CARD REMOVED]', 'red', true, true);
+        } else {
+          await msgError('Exception', 'Matching Result');
+        }
       } else if (result === ErrorCodes.FP_PROCESSING) {
         if (--matchCnt === 0) {
           cardAppendText('[Not Match(TimeOut)]', 'red', true, true);
@@ -826,8 +834,10 @@
       tMatch.stop();
       matchRunning = false;
       setText(['btnMatching', 'btnDevMatching'], 'MATCH');
+      setMatchImage(IMG.fp);
       await updateDisconnectionUI();
-      await msgError(ex.message);
+      if (isCardGoneError(ex.message)) cardAppendText('[CARD REMOVED]', 'red', true, true);
+      else await msgError(ex.message);
       return;
     }
 
@@ -880,24 +890,106 @@
     try {
       await updateDisconnectionUI();
       const { atr } = await bridge.connect(selectedReaderName);
-      cardAppendText('[CARD ACTIVATE] ' + atr, 'blue', false, true);
-
-      cardActiveState(true);
-      fpcMethod.seleted = false;
-      fpcMethod.cardAuth = false;
-
-      const result = await cardReadInformation();
-      if (result === ErrorCodes.NO_ERROR) {
-        setEnabled(['btnDisconnect', 'btnEnrollment', 'btnMatch', 'btnSetting', 'cbSelectFinger', 'cbDevSelectFinger',
-          'btnEnrollSensorTest'], true);
-        updateStatusTextBox();
-        updateEnrollImgStatus();
-      } else {
-        await updateDisconnectionUI();
-      }
+      await afterCardConnected(atr);
     } catch (ex) {
       cardActiveState(false);
       await msgError('Card Connection Fail\n\n' + ex.message);
+    }
+  }
+
+  // Everything CONNECT does once the reader has powered the card. Returns true on success.
+  async function afterCardConnected(atr) {
+    cardAppendText('[CARD ACTIVATE] ' + atr, 'blue', false, true);
+
+    cardActiveState(true);
+    fpcMethod.seleted = false;
+    fpcMethod.cardAuth = false;
+
+    const result = await cardReadInformation();
+    if (result === ErrorCodes.NO_ERROR) {
+      setEnabled(['btnDisconnect', 'btnEnrollment', 'btnMatch', 'btnSetting', 'cbSelectFinger', 'cbDevSelectFinger',
+        'btnEnrollSensorTest'], true);
+      updateStatusTextBox();
+      updateEnrollImgStatus();
+      return true;
+    }
+    await updateDisconnectionUI();
+    return false;
+  }
+
+  // ---------------------------------------------------------------- MATCH tab: auto connect + match
+  // While the MATCH tab is open and no card is connected, try to connect once per second.
+  // A placed card is connected and matched as if CONNECT and MATCH had been pressed.
+  const AUTO_MATCH_POLL_MS = 1000;
+  let autoMatchBusy = false;
+  let autoWaitRemoval = false; // last card failed to connect/read: wait until it is taken off
+
+  function isCardGoneError(message) {
+    return /REMOVED_CARD|NO_SMARTCARD|RESET_CARD|UNPOWERED_CARD|UNRESPONSIVE_CARD|0x80100069|0x8010000C|0x80100068|0x80100067|0x80100066/
+      .test(message || '');
+  }
+
+  function autoMatchReader() {
+    if (selectedReaderName) return selectedReaderName;
+    const readers = Array.from($('cbSelReader').options).map((o) => o.value).filter(Boolean);
+    return readers.find((r) => /contactless/i.test(r)) || readers[0] || null;
+  }
+
+  function updateMatchHint() {
+    let text = '';
+    if (!bridge.connected) text = 'PC/SC 브리지에 연결되지 않았습니다.';
+    else if (activeCard && matchRunning) text = '매칭 중입니다. CANCEL을 누르면 멈춥니다.';
+    else if (activeCard) text = 'MATCH를 누르면 매칭을 시작합니다.';
+    else if (!autoMatchReader()) text = '리더기를 연결해 주세요.';
+    else if (autoWaitRemoval) text = '카드를 리더기에서 뗀 뒤 다시 올려 주세요.';
+    else text = '카드를 리더기에 올려 주세요. 자동으로 매칭을 시작합니다.';
+    $('matchHint').textContent = text;
+  }
+
+  async function autoMatchTick() {
+    if ($('tbMatch').hidden) return;
+    updateMatchHint();
+    if (autoMatchBusy || uiBusy || activeCard || !bridge.connected || $('msgBox').open) return;
+
+    const reader = autoMatchReader();
+    if (!reader) return;
+
+    autoMatchBusy = true;
+    try {
+      let atr;
+      try {
+        ({ atr } = await bridge.connect(reader));
+      } catch (e) {
+        autoWaitRemoval = false; // no card on the reader
+        return;
+      }
+
+      if (autoWaitRemoval || uiBusy || activeCard || $('tbMatch').hidden) {
+        // Same failed card still there (or the user took over meanwhile): release it and keep waiting.
+        try { if (!activeCard) await bridge.disconnect(); } catch (e) { /* ignore */ }
+        return;
+      }
+
+      uiBusy = true;
+      try {
+        selectedReaderName = reader;
+        $('cbSelReader').value = reader;
+        cardAppendText('[AUTO DETECT] ' + reader, 'orange', true, true);
+
+        if (!await afterCardConnected(atr)) {
+          autoWaitRemoval = true;
+          return;
+        }
+        await fpMatch(false);
+      } catch (ex) {
+        autoWaitRemoval = true;
+        await updateDisconnectionUI();
+      } finally {
+        uiBusy = false;
+      }
+    } finally {
+      autoMatchBusy = false;
+      updateMatchHint();
     }
   }
 
@@ -929,7 +1021,7 @@
     cardEnrollState(false);
 
     fpcMethod.seleted = false;
-    setEnabled(['btnDisconnect', 'btnInitalization', 'btnInit', 'btnEnrollment', 'btnMatch', 'btnSetting',
+    setEnabled(['btnDisconnect', 'btnInitalization', 'btnInit', 'btnEnrollment', 'btnSetting',
       'btnEnroll', 'btnDevEnroll', 'btnDel', 'btnDevDelete', 'btnMatching', 'btnDevMatching',
       'cbSelectFinger', 'cbDevSelectFinger', 'btnEnrollSensorTest'], false);
 
@@ -960,6 +1052,7 @@
       $(t).hidden = t !== tabId;
       $(NAV[t]).classList.toggle('active', t === tabId);
     }
+    if (tabId === 'tbMatch') updateMatchHint();
   }
 
   // ---------------------------------------------------------------- initialization dialog (initForm)
