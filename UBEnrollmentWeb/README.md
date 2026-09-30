@@ -4,6 +4,8 @@
 
 **https://byungku.github.io/FPC_Manager_Tool/UBEnrollmentWeb/web/**
 
+**웹브라우저는 크롬를 사용해야 합니다.**
+
 - 처음 사용하는 PC는 브리지를 내려받아 실행하세요. 실행 중인 동안 웹에서 리더기를 사용할 수 있습니다.
   - **Windows**: [FPCBridge.exe 다운로드](https://github.com/byungku/FPC_Manager_Tool/raw/main/UBEnrollmentWeb/FPCBridge.exe)
   - **Mac**: [FPCBridge-mac.zip 다운로드](https://github.com/byungku/FPC_Manager_Tool/raw/main/UBEnrollmentWeb/FPCBridge-mac.zip) (Apple Silicon·Intel 공용)
@@ -71,7 +73,9 @@ Mac에서는 터미널에서 `./FPCBridge.command --no-browser`처럼 같은 옵
 ```
 
 - 브라우저는 보안상 PC/SC 리더기에 직접 접근할 수 없어서, 로컬 브리지(`FPCBridge` / `PcscBridge.exe`)가 **리더기 목록 / 연결 / APDU 전송 / 연결 해제** 네 가지만 WebSocket으로 제공합니다.
+  
 - 애플릿 선택, SCP02 인증, 등록, 매칭, 초기화, 삭제 등 **카드 로직은 모두 브라우저(JS)에서 실행**됩니다.
+- 
 - 브리지는 아래 주소의 웹 화면만 접속을 허용하고, 그 밖의 사이트는 거부(403)합니다.
   - `localhost`, `127.0.0.1` (로컬 실행)
   - `https://byungku.github.io` (GitHub Pages, 기본 내장)
@@ -79,8 +83,6 @@ Mac에서는 터미널에서 `./FPCBridge.command --no-browser`처럼 같은 옵
 - 다른 주소의 브리지를 쓰려면 웹 주소 뒤에 `?bridge=ws://localhost:9000/pcsc`를 붙입니다.
 
 ## 폴더 구조
-
-```
 UBEnrollmentWeb/
 ├─ index.html            web/index.html 로 이동 (폴더 주소로 접속하거나 더블클릭할 때)
 ├─ FPCBridge.exe         Windows용 브리지 + 웹 화면 내장 (v2.0.0, Go)
@@ -140,63 +142,3 @@ UBEnrollmentWeb/
 ### ABOUT
 - 툴 이름과 버전 정보
 
-### DEV (관리자 모드)
-- **Ctrl + Shift + F11**을 누르면 왼쪽 메뉴에 DEV가 나타납니다. (새로고침하면 다시 숨겨집니다.)
-- 컨트롤러 버전 / 애플릿 버전 / Block State 표시
-- **Send APDU**(Enter로도 전송), **Sensor Self-Test**
-- 손가락 선택 후 ENROLL / DELETE / MATCH
-- **Repeat matching**: 기본 체크. MATCH DELAY(기본 1000 ms), MATCH COUNT(기본 50) 설정 후 통계 표시
-  - 반복 매칭은 **DEV 화면의 MATCH 버튼에만** 적용되고, MATCH 탭은 항상 연속 단일 매칭으로 동작합니다.
-- **Card Log**: 주고받은 APDU 전체 기록 (CLEAR로 초기화)
-
-### SETTING (키 설정)
-- ENC / MAC / DEK 키(각 32자리 16진수) 입력. 비워 두면 기본 키를 사용합니다.
-- 키는 **브라우저별로 저장**됩니다(localStorage). 원본의 `textKEY.txt`는 사용하지 않습니다.
-
-### 숨김 단축키
-| 단축키 | 기능 |
-| --- | --- |
-| Ctrl + Shift + F11 | DEV 메뉴 표시 |
-| Ctrl + Shift + F10 | MATCH 메뉴 표시 (기본으로 보이므로 영향 없음) |
-| Ctrl + Shift + F9 | 손가락 선택 표시 (기본으로 보이므로 영향 없음) |
-
-## 원본(WinForms) 대비 차이
-
-| 항목 | 원본 | 웹 버전 |
-| --- | --- | --- |
-| 등록 | 한 번 터치마다 성공 팝업 | 목표 횟수까지 자동 연속 등록 |
-| 매칭 (MATCH 탭) | 1회 매칭 후 결과 팝업 | CANCEL 전까지 연속 매칭, 결과는 이미지로 표시 |
-| 반복 매칭 | 체크 해제가 기본, MATCH 탭에도 적용 | 체크가 기본, DEV 화면에만 적용 |
-| 반복 매칭 중 CANCEL | 멈추지 않고 새로 시작되는 버그 | 정상적으로 멈춤 |
-| 취소 처리 | `Thread.Abort()`로 스레드 중단 | 이미 보낸 APDU의 결과를 무시. 모든 APDU는 한 줄로 순서대로 전송 |
-| 연결 해제 | 타이머 일부가 계속 동작 | 등록·매칭·초기화 타이머 모두 정지 |
-| 키 저장 | exe 옆 `textKEY.txt` | 브라우저 localStorage |
-
-SCP02 인증(INITIALIZE UPDATE + EXTERNAL AUTHENTICATE) 결과는 원본 `UBScp02.cs`와 **바이트 단위로 동일**함을 확인했습니다.
-
-## 업데이트 방법 (GitHub)
-
-1. GitHub에서 올릴 폴더로 들어가 **Add file → Upload files**를 누릅니다.
-2. 바뀐 파일을 끌어다 놓고 **Commit changes**를 누릅니다.
-   - `UBEnrollmentWeb` 폴더 안에서는 폴더 자체가 아니라 **내용물**을 올려야 폴더가 겹치지 않습니다.
-3. 1~2분 뒤(Actions 탭에 ✅) 사이트에 반영되며, 사용자는 **Ctrl + F5**로 새로고침하면 됩니다.
-4. 브리지(`FPCBridge.exe`, `FPCBridge-mac.zip`, `PcscBridge.exe`)를 바꾼 경우(웹 화면 수정 포함)에는 각 사용자가 브리지를 **다시 내려받아야** 합니다.
-5. `fpcbridge\webdist` 폴더는 빌드용 복사본이라 GitHub에 올리지 않아도 됩니다.
-6. `web` 폴더의 CSS/JS를 바꿨다면 `web\index.html` 안의 `?v=20260928c` 값을 새 값(예: 날짜+문자)으로 **모두 바꿔** 주세요. 브라우저가 이전 파일을 캐시해 두었다가 새 화면과 섞어 쓰는 것을 막아 줍니다.
-
-## 브리지 다시 빌드하기
-
-**`web` 폴더의 파일을 수정한 경우에도 반드시 다시 빌드**하세요. 웹 화면이 브리지 안에 들어가므로, 다시 빌드해야 브리지만 받은 사용자에게 반영됩니다.
-
-| 브리지 | 빌드 방법 | 결과물 | 필요한 것 |
-| --- | --- | --- | --- |
-| FPCBridge | `fpcbridge\build.bat` | `FPCBridge.exe`, `FPCBridge-mac.zip` | Go 1.27 이상 (없으면 `%USERPROFILE%\tools\go`를 사용) |
-| PcscBridge | `bridge\build.bat` | `PcscBridge.exe` | 없음 (Windows 내장 .NET Framework 4.x 컴파일러 사용) |
-
-- FPCBridge는 Windows PC 한 대에서 **Windows용과 Mac용(Apple Silicon·Intel)을 모두** 만듭니다. Mac용 Apple Silicon 파일은 빌드할 때 자동으로 서명(ad-hoc)되어 M 시리즈 Mac에서도 실행됩니다.
-- Mac용은 이 PC에서 실행해 볼 수 없으므로, 바꾼 뒤에는 Mac에서 한 번 실행해 확인하세요.
-
-## 주의사항
-
-- 공개 저장소이므로 소스 코드와 기본 SCP02 키(`404142…4F`)를 누구나 볼 수 있습니다.
-- 브리지는 허용된 웹사이트만 받아들입니다. `--allow-origin *`처럼 모든 사이트를 허용하면 다른 웹사이트도 카드에 APDU를 보낼 수 있으므로 사용하지 마세요.
