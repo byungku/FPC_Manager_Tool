@@ -42,7 +42,7 @@ PC/SC 리더기로 지문카드에 지문을 등록하는 PC 툴 `UBEnrollmentMa
 
 ### ABOUT
 - 지문등록툴을 다운로드를 직접 받아서 실행해도 됩니다.
-- 지문등록툴은 아래와 같이 FPC_Manager_TOOL(PC).exe 다운로드 받아 실행하시면 됩니다. 
+- 지문등록툴은 아래와 같이 FPC_Manager_Tool / FPC_Manager_TOOL(PC).exe 경로에서 다운로드 받아 실행하시면 됩니다. 
   <img width="929" height="307" alt="image" src="https://github.com/user-attachments/assets/5eef55bb-8923-455a-a2c8-b4969d066e7d" />
 
 
